@@ -5,10 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=maciej
-WorkingDirectory=/home/maciej/eink-dashboard
+User=__RUN_USER__
+WorkingDirectory=__INSTALL_DIR__
+EnvironmentFile=-/etc/default/eink-dashboard
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/home/maciej/eink-dashboard/.venv/bin/python /home/maciej/eink-dashboard/dashboard.py
+ExecStart=__INSTALL_DIR__/.venv/bin/python -m eink_dashboard.cli
 Restart=on-failure
 RestartSec=10
 
