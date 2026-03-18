@@ -1,0 +1,16 @@
+[Unit]
+Description=E-ink dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=maciej
+WorkingDirectory=/home/maciej/eink-dashboard
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/maciej/eink-dashboard/.venv/bin/python /home/maciej/eink-dashboard/dashboard.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
