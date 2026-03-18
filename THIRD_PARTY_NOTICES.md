@@ -2,11 +2,10 @@
 
 ## Waveshare e-Paper Python driver
 
-Katalog `lib/waveshare_epd/` zawiera minimalny podzbiór sterownika Waveshare potrzebny do obsługi wyświetlacza `epd2in13_V4`.
+The `lib/waveshare_epd/` directory contains the minimal subset of the Waveshare driver required to support the `epd2in13_V4` display.
 
-Pliki pochodzą z repozytorium:
+Files were taken from:
 
 - `https://github.com/waveshareteam/e-Paper`
 
-Oryginalne nagłówki licencyjne zostały zachowane w skopiowanych plikach.
-
+The original license headers were preserved in the copied files.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-os.environ.setdefault("GPIOZERO_PIN_FACTORY", "lgpio")  # przed importem waveshare
+os.environ.setdefault("GPIOZERO_PIN_FACTORY", "lgpio")  # set before importing Waveshare
 
 import json
 import csv
@@ -8,12 +8,11 @@ import ssl
 import urllib.request
 from datetime import datetime
 import time
-from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont
 import asyncio
 
-# waveshare lib z repo (bez instalacji paczki)
+# Use the vendored Waveshare library directly from the repository.
 import sys as _sys
 _sys.path.append(os.path.join(os.path.dirname(__file__), "lib"))
 from waveshare_epd import epd2in13_V4
@@ -28,21 +27,21 @@ STOOQ_SYMBOLS = ["bmc", "bmc.pl"]
 STOOQ_QUOTE_URL = "https://stooq.com/q/l/?s={sym}&f=sd2t2ohlcv&h&e=csv"
 
 BT_HOME_UUID = "0000fcd2-0000-1000-8000-00805f9b34fb"
-# Na Linuxie adres to zwykle MAC; na macOS widac UUID.
+# On Linux this is usually a MAC address; on macOS it may be a UUID.
 BT_TARGET_ADDR = ""
 BT_TARGET_NAME = "ATC_032E2A"
 
 PADDING = 4
-SPLIT_Y = 62  # linia podziału (góra/dół)
+SPLIT_Y = 62  # top / bottom separator
 
 WMO_DESC_PL = {
-    0: "bezchm.", 1: "prawie", 2: "częściowe", 3: "pochm.",
-    45: "mgła", 48: "mgła",
-    51: "mżawka", 53: "mżawka", 55: "mżawka",
-    61: "deszcz", 63: "deszcz", 65: "deszcz",
-    71: "śnieg", 73: "śnieg", 75: "śnieg",
-    80: "przelotny", 81: "przelotny", 82: "ulewa",
-    95: "burza", 96: "burza", 99: "burza",
+    0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "cloudy",
+    45: "fog", 48: "fog",
+    51: "drizzle", 53: "drizzle", 55: "drizzle",
+    61: "rain", 63: "rain", 65: "rain",
+    71: "snow", 73: "snow", 75: "snow",
+    80: "showers", 81: "showers", 82: "heavy rain",
+    95: "storm", 96: "storm", 99: "storm",
 }
 
 
@@ -54,7 +53,7 @@ def fetch_bytes(url: str, timeout: int = 6) -> bytes:
 
 
 def get_font(size: int) -> ImageFont.ImageFont:
-    # pewne fonty na RPi OS (a jak nie ma, to fallback)
+    # Prefer fonts commonly available on Raspberry Pi OS.
     for p in [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
@@ -133,7 +132,7 @@ def get_weather():
     temp = cur.get("temperature_2m")
     hum = cur.get("relative_humidity_2m")
     code = cur.get("weather_code")
-    desc = WMO_DESC_PL.get(code, f"kod {code}")
+    desc = WMO_DESC_PL.get(code, f"code {code}")
     return {"temp": temp, "hum": hum, "desc": desc}
 
 
@@ -234,7 +233,7 @@ def render_image(epd, weather, stock):
     font_m = get_font(14)
     font_b = get_font(18)
 
-    # linia podziału
+    # Separator line.
     draw.line((0, SPLIT_Y, W, SPLIT_Y), fill=0)
 
     # --- HEADER ---
@@ -245,19 +244,19 @@ def render_image(epd, weather, stock):
     if weather and weather.get("temp") is not None:
         wtxt = f"{CITY}: {weather['temp']:.1f}°C {int(weather['hum'])}% {weather['desc']}"
     else:
-        wtxt = f"{CITY}: brak danych"
+        wtxt = f"{CITY}: no data"
 
     y1 = PADDING
     lh = line_h(font_m)
 
-    # próba: zmieścić pogodę + godzinę w 1 linii
+    # Try to fit weather and time on one line.
     max_weather_1line = W - 2 * PADDING - time_w - 6
     if text_w(draw, wtxt, font_m) <= max_weather_1line:
         draw.text((PADDING, y1), wtxt, font=font_m, fill=0)
         draw.text((W - PADDING - time_w, y1 - 1), time_str, font=font_b, fill=0)
         y_after_header = y1 + lh
     else:
-        # pogoda w 2 linie, godzina w 2 linii po prawej
+        # Render weather on two lines and time on the right.
         max_w1 = W - 2 * PADDING
         max_w2 = W - 2 * PADDING - time_w - 6
 
@@ -266,7 +265,7 @@ def render_image(epd, weather, stock):
         if l2:
             draw.text((PADDING, y1 + lh), l2, font=font_m, fill=0)
 
-        # godzina na drugiej linii, prawa strona
+        # Put the time on the second line on the right edge.
         draw.text((W - PADDING - time_w, y1 + lh - 2), time_str, font=font_b, fill=0)
         y_after_header = y1 + (2 * lh)
 
@@ -274,8 +273,8 @@ def render_image(epd, weather, stock):
     if weather and weather.get("local"):
         d = weather["local"]
         local_txt = (
-            f"Syp: Temp: {d['temperature_c']:.1f}°C Hum: {d['humidity_pct']:.0f}% "
-            f"Bat{d['battery_pct']}%"
+            f"Bedroom: {d['temperature_c']:.1f}°C {d['humidity_pct']:.0f}% "
+            f"Bat {d['battery_pct']}%"
         )
         draw.text((PADDING, y_after_header + 1), local_txt, font=font_s, fill=0)
 
@@ -287,7 +286,7 @@ def render_image(epd, weather, stock):
         stxt = f"BMC: {stock['close']:.2f} PLN"
         sub = f"{stock.get('date','')} {stock.get('time','')}".strip()
     else:
-        stxt = "BMC: brak danych"
+        stxt = "BMC: no data"
         sub = ""
 
     draw.text((x, y - 1), stxt, font=font_b, fill=0)
@@ -298,7 +297,7 @@ def render_image(epd, weather, stock):
 
 
 def seconds_until_next_half_hour(now: datetime) -> float:
-    # Najblizszy slot: pelna godzina lub +30 min
+    # Next refresh slot: full hour or half past.
     minute = now.minute
     if minute < 30:
         target_minute = 30

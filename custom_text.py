@@ -14,15 +14,15 @@ def main():
     epd.init()
     epd.Clear(0xFF)
 
-    # 2.13" V4 zwykle jest "wąski/wysoki" -> w przykładach rysuje się na (height, width) i obraca
+    # 2.13" V4 uses a portrait-oriented buffer that is rotated before display.
     W, H = epd.height, epd.width
     image = Image.new("1", (W, H), 255)
     draw = ImageDraw.Draw(image)
 
-    # font (pewny na RPi OS)
+    # Font commonly available on Raspberry Pi OS.
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
 
-    # wyśrodkuj tekst
+    # Center the text.
     bbox = draw.textbbox((0, 0), text, font=font)
     tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
     x = max(0, (W - tw) // 2)
@@ -30,7 +30,7 @@ def main():
 
     draw.text((x, y), text, font=font, fill=0)
 
-    # obróć do orientacji wyświetlacza
+    # Rotate into the display orientation.
     image = image.rotate(90, expand=True)
 
     epd.display(epd.getbuffer(image))

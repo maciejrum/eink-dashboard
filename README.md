@@ -1,33 +1,33 @@
 # eink-dashboard
 
-Minimalny projekt dashboardu dla Raspberry Pi Zero i wyświetlacza Waveshare e-ink 2.13" V4.
+A minimal dashboard project for Raspberry Pi Zero and the Waveshare 2.13" V4 e-ink display.
 
-Repo zawiera tylko:
-- własny kod aplikacji,
-- minimalny sterownik Waveshare potrzebny dla `epd2in13_V4`,
-- przykładową usługę `systemd`.
+This repository includes only:
+- the application code,
+- the minimal Waveshare driver required for `epd2in13_V4`,
+- an example `systemd` service.
 
-## Struktura
+## Structure
 
-- `dashboard.py` - główny dashboard: pogoda, kurs akcji, lokalny czujnik BLE, render na e-inku
-- `custom_text.py` - prosty test wyświetlania tekstu
-- `lib/waveshare_epd/` - minimalny vendor driver dla `epd2in13_V4`
-- `systemd/dashboard.service` - przykładowa usługa systemowa
+- `dashboard.py` - main dashboard: weather, stock quote, local BLE sensor, and e-ink rendering
+- `custom_text.py` - simple text rendering test
+- `lib/waveshare_epd/` - minimal vendor driver for `epd2in13_V4`
+- `systemd/dashboard.service` - example system service
 
-## Wymagania
+## Requirements
 
 - Raspberry Pi z włączonym SPI
 - Python 3
-- pakiety systemowe potrzebne do kompilacji i obsługi GPIO/SPI
+- system packages needed for GPIO/SPI support and native Python builds
 
-Przykładowo na Debian/Raspberry Pi OS:
+Example on Debian / Raspberry Pi OS:
 
 ```bash
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip python3-dev libgpiod2
 ```
 
-## Instalacja
+## Installation
 
 ```bash
 cd /home/maciej/eink-dashboard
@@ -36,7 +36,7 @@ python3 -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Uruchomienie ręczne
+## Manual run
 
 ```bash
 cd /home/maciej/eink-dashboard
@@ -46,27 +46,26 @@ python dashboard.py
 
 ## Systemd
 
-1. Skopiuj usługę:
+1. Copy the service file:
 
 ```bash
 sudo cp systemd/dashboard.service /etc/systemd/system/dashboard.service
 ```
 
-2. Przeładuj `systemd` i uruchom:
+2. Reload `systemd` and start the service:
 
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now dashboard.service
 ```
 
-3. Logi:
+3. Logs:
 
 ```bash
 journalctl -u dashboard.service -f
 ```
 
-## Uwagi
+## Notes
 
-- `dashboard.py` ma na razie konfigurację zaszytą w stałych na górze pliku.
-- Sterownik `lib/waveshare_epd` pochodzi z repo Waveshare i został ograniczony do minimalnego zestawu plików potrzebnych dla tego projektu.
-
+- `dashboard.py` currently keeps its configuration in constants at the top of the file.
+- `lib/waveshare_epd` comes from the Waveshare repository and has been reduced to the minimum set of files needed for this project.
