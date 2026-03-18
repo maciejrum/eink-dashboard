@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 
 
@@ -39,7 +40,50 @@ class AppConfig:
     user_agent: str = "pi-zero-eink/1.0"
 
 
-DEFAULT_CONFIG = AppConfig()
+def _get_env_float(name: str, default: float) -> float:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return float(value)
+
+
+def _get_env_str(name: str, default: str) -> str:
+    return os.getenv(name, default)
+
+
+def load_config() -> AppConfig:
+    return AppConfig(
+        location=LocationConfig(
+            city=_get_env_str("EINK_CITY", LocationConfig.city),
+            lat=_get_env_float("EINK_LAT", LocationConfig.lat),
+            lon=_get_env_float("EINK_LON", LocationConfig.lon),
+            timezone=_get_env_str("EINK_TIMEZONE", LocationConfig.timezone),
+        ),
+        market=MarketConfig(
+            symbols=tuple(
+                item.strip()
+                for item in _get_env_str("EINK_STOOQ_SYMBOLS", ",".join(MarketConfig.symbols)).split(",")
+                if item.strip()
+            )
+            or MarketConfig.symbols,
+            quote_url=_get_env_str("EINK_STOOQ_QUOTE_URL", MarketConfig.quote_url),
+        ),
+        ble=BleConfig(
+            service_uuid=_get_env_str("EINK_BT_HOME_UUID", BleConfig.service_uuid),
+            target_addr=_get_env_str("EINK_BT_TARGET_ADDR", BleConfig.target_addr),
+            target_name=_get_env_str("EINK_BT_TARGET_NAME", BleConfig.target_name),
+            timeout_s=_get_env_float("EINK_BT_TIMEOUT_S", BleConfig.timeout_s),
+            retry_delay_s=_get_env_float("EINK_BT_RETRY_DELAY_S", BleConfig.retry_delay_s),
+        ),
+        layout=LayoutConfig(
+            padding=int(_get_env_float("EINK_LAYOUT_PADDING", LayoutConfig.padding)),
+            split_y=int(_get_env_float("EINK_LAYOUT_SPLIT_Y", LayoutConfig.split_y)),
+        ),
+        user_agent=_get_env_str("EINK_USER_AGENT", AppConfig.user_agent),
+    )
+
+
+DEFAULT_CONFIG = load_config()
 
 WMO_DESCRIPTIONS = {
     0: "clear",
@@ -64,4 +108,3 @@ WMO_DESCRIPTIONS = {
     96: "storm",
     99: "storm",
 }
-
