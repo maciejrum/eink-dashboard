@@ -26,6 +26,9 @@ def decode_fixed_bthome(data: bytes) -> dict[str, object] | None:
 
 async def read_ble_once(config: AppConfig) -> dict[str, object]:
     ble = config.ble
+    if not ble.target_addr and not ble.target_name:
+        return {}
+
     got = asyncio.Event()
     result: dict[str, object] = {}
 
@@ -58,7 +61,7 @@ async def read_ble_once(config: AppConfig) -> dict[str, object]:
 
 def get_ble_sensor(config: AppConfig) -> dict[str, object] | None:
     try:
-        return asyncio.run(read_ble_once(config))
+        result = asyncio.run(read_ble_once(config))
+        return result or None
     except Exception:
         return None
-
