@@ -25,7 +25,10 @@ Example on Debian / Raspberry Pi OS:
 ```bash
 sudo apt update
 sudo apt install -y python3 python3-venv python3-pip python3-dev libgpiod2
+sudo usermod -a -G gpio,spi "$USER"
 ```
+
+If you just added the groups, log out and back in or reboot before testing manual runs.
 
 ## Installation
 
@@ -69,11 +72,22 @@ to:
 
 You can edit that file to change the city, coordinates, timezone, stock symbols, and BLE target.
 
+BLE is optional and disabled by default when both `EINK_BT_TARGET_NAME` and `EINK_BT_TARGET_ADDR` are empty.
+
 ## Tests
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+Real BLE integration test on Raspberry Pi:
+
+```bash
+cd /home/your-user/eink-dashboard
+sudo env RUN_BLE_INTEGRATION=1 EINK_BT_TARGET_NAME=ATC_032E2A python3 -m unittest tests.test_ble_integration -v
+```
+
+You can also set `EINK_BT_TARGET_ADDR`, `EINK_BT_HOME_UUID`, and `EINK_BT_TIMEOUT_S` for your sensor.
 
 ## Systemd
 

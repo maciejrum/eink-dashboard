@@ -6,7 +6,7 @@ from dataclasses import dataclass
 class BleConfig:
     service_uuid: str = "0000fcd2-0000-1000-8000-00805f9b34fb"
     target_addr: str = ""
-    target_name: str = "ATC_032E2A"
+    target_name: str = ""
     timeout_s: float = 8.0
     retry_delay_s: float = 10.0
 
