@@ -8,7 +8,7 @@ from eink_dashboard.providers.ble import get_ble_sensor
 from eink_dashboard.providers.stocks import get_stock_quote
 from eink_dashboard.providers.weather import get_weather
 from eink_dashboard.rendering import render_dashboard
-from eink_dashboard.scheduler import seconds_until_next_half_hour
+from eink_dashboard.scheduler import seconds_until_next_minute
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def run_dashboard(config=DEFAULT_CONFIG):
                 update_display(epd, config)
             except Exception as exc:
                 logger.error("Dashboard refresh failed: %s", exc)
-            time.sleep(seconds_until_next_half_hour(datetime.now()))
+            time.sleep(seconds_until_next_minute(datetime.now()))
     except KeyboardInterrupt:
         logger.info("Stopping dashboard")
     finally:
